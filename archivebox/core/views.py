@@ -4,13 +4,15 @@ from io import StringIO
 from contextlib import redirect_stdout
 
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.utils.html import format_html, mark_safe
 from django.views import View, static
 from django.views.generic.list import ListView
 from django.views.generic import FormView
 from django.db.models import Q
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from core.models import Snapshot
 from core.forms import AddLinkForm
@@ -23,6 +25,7 @@ from ..config import (
     VERSION,
     FOOTER_INFO,
     SNAPSHOTS_PER_PAGE,
+    API_KEY,
 )
 from ..main import add
 from ..util import base_url, ansi_to_html
@@ -293,3 +296,32 @@ class AddView(UserPassesTestMixin, FormView):
             "form": AddLinkForm()
         })
         return render(template_name=self.template_name, request=self.request, context=context)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ApiAddView(UserPassesTestMixin, View):
+    def test_func(self):
+        return API_KEY != None and self.request.headers.get("Authorization") == "Bearer " + API_KEY
+
+    def post(self, request):
+        url = request.POST.get("urls")
+        print(f'[+] Adding URL: {url}')
+        parser = request.POST.get("parser") or "auto"
+        tag = request.POST.get("tag") or ""
+        depth = 0 if request.POST.get("depth") == "0" else 1
+        input_kwargs = {
+            "urls": url,
+            "tag": tag,
+            "depth": depth,
+            "parser": parser,
+            "update_all": False,
+            "out_dir": OUTPUT_DIR,
+        }
+        add_stdout = StringIO()
+        with redirect_stdout(add_stdout):
+            add(**input_kwargs)
+            print(add_stdout.getvalue())
+
+        return JsonResponse({
+            'ok': True,
+            'stdout': ansi_to_html(add_stdout.getvalue().strip())
+        })

@@ -6,7 +6,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
 from django.views.generic.base import RedirectView
 
-from core.views import HomepageView, SnapshotView, PublicIndexView, AddView
+from core.views import HomepageView, SnapshotView, PublicIndexView, AddView, ApiAddView
 
 
 # print('DEBUG', settings.DEBUG)
@@ -24,6 +24,8 @@ urlpatterns = [
 
     path('admin/core/snapshot/add/', RedirectView.as_view(url='/add/')),
     path('add/', AddView.as_view(), name='add'),
+
+    path('api/add/', ApiAddView.as_view(), name='api_add'),
     
     path('accounts/login/', RedirectView.as_view(url='/admin/login/')),
     path('accounts/logout/', RedirectView.as_view(url='/admin/logout/')),
