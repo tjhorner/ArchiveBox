@@ -244,6 +244,7 @@ def chrome_args(**options) -> List[str]:
             '--hide-scrollbars',
             '--single-process',
             '--no-zygote',
+            '--force-dark-mode'
         )
 
 
