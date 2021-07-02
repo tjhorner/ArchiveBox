@@ -227,6 +227,7 @@ def chrome_args(**options) -> List[str]:
         raise Exception('Could not find any CHROME_BINARY installed on your system')
 
     cmd_args = [options['CHROME_BINARY']]
+    cmd_args += ('--force-dark-mode',)
 
     if options['CHROME_HEADLESS']:
         cmd_args += ('--headless',)
@@ -243,8 +244,7 @@ def chrome_args(**options) -> List[str]:
             '--run-all-compositor-stages-before-draw',
             '--hide-scrollbars',
             '--single-process',
-            '--no-zygote',
-            '--force-dark-mode'
+            '--no-zygote'
         )
 
 
